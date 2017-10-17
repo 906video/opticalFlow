@@ -1,6 +1,9 @@
-example = 'bird';
+example = 'box';
 [vx,vy] = demoflow(example);
 
-essentialMatrix = essentialMatrix(vx,vy);
+[R, T] = RotPosCal(vx, vy);
 
-R = RotPosCal(essentialMatrix)
+fprintf( 'Rot:\n');
+R
+fprintf( 'Translation:\n');
+T
