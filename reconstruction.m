@@ -1,23 +1,24 @@
-example = 'bird';
-num = 20;
+function reconstruction()
+    example = 'bird';
+%     num = 20;
 
 % RotationMatrice = zeros(3,3,num);
 % TranslationMatrice = zeros(3,1,num);
 
-RotationMatrice(:,:,1) = [1, 0, 0; 0, 1, 0; 0, 0, 1];
-TranslationMatrice(:,:,1) = [0, 0, 0]';
+%     RotationMatrice(:,:,1) = [1, 0, 0; 0, 1, 0; 0, 0, 1];
+%     TranslationMatrice(:,:,1) = [0, 0, 0]';
 
-unit_length = 1;
+%     unit_length = 1;
 
 datadir = fullfile( fileparts( mfilename( 'fullpath' ) ), 'Data' );
 % for i = 1:num
-i = 3;
+    i = 3;
     [vx,vy] = demoflow(example, i);
     
     filename = fullfile( datadir, sprintf( '%s%04d.jpg', example, i) );
     image = im2double(imread(filename));
-
-    [R, T] = RotPosCal(vx, vy, image);
+    
+    [R, T] = getRotTrans(vx, vy, image);
     
 %     RotationMatrice(:,:,i) = R;
 %     TranslationMatrice(:,:,i) = T';
@@ -46,3 +47,18 @@ i = 3;
 %             RotationMatrice(3,1,i), RotationMatrice(3,2,i), RotationMatrice(3,3,i));
 % end
 % fclose(fid_rot);
+end
+
+function [R, T] = getRotTrans(vx, vy, image)
+    
+    s = warning('error', 'MATLAB:nearlySingularMatrix');
+    warning('error', 'MATLAB:DELETE:FileNotFound');
+    
+    try
+        [R, T] = RotPosCal(vx, vy, image);
+    catch 
+        [R, T] = getRotTrans(vx, vy, image);
+    end
+    
+    warning(s);
+end

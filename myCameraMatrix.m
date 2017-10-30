@@ -193,7 +193,11 @@ for i = 1:size(points1, 1)
     A = [a1, -a2];
     y = c2 - c1;
     
-    alpha = (A' * A) \ A' * y;
+    temp = A' * A;
+    temp = temp \ A';
+    alpha = temp * y;
+
+%     alpha = (A' * A) \ A' * y;
     
     p = (c1 + alpha(1) * a1 + c2 + alpha(2) * a2) / 2;
     
