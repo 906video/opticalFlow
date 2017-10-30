@@ -1,4 +1,4 @@
-function [ Rot, Pos ] = RotPosCal(vx, vy)
+function [ Rot, Pos ] = RotPosCal(vx, vy, image)
 %FUNDAMENTALMATRIX Summary of this function goes here
 %   Detailed explanation goes here
 load stereoPointPairs
@@ -9,26 +9,47 @@ load stereoPointPairs
 matchedPoints1 = zeros(16,2);
 matchedPoints2 = zeros(16,2);
 
+i = round(a/2);
+j = round(b/2);
+matchedPoints1(1,1) = i;
+matchedPoints1(1,2) = j;
 
-for num = 1:16
+posx = round( i + vy(i,j));
+posy = round( j + vx(i,j));
+
+matchedPoints2(1,1) = posx;
+matchedPoints2(1,2) = posy;
+
+border = 100;
+left = border;
+right = b - border;
+up = border;
+down = a - border;
+
+num = 1;
+while(num < 17)
     
-    i = round(unifrnd(1,a));
-    j = round(unifrnd(1,b));
+    i = round(unifrnd(up,down));
+    j = round(unifrnd(left,right));
     
     i = max( min(i, a), 1);
     j = max( min(j, b), 1);
-
-    matchedPoints1(num,1) = i;
-    matchedPoints1(num,2) = j;
     
-    posx = round( i + vy(i,j));
-    posy = round( j + vx(i,j));
+    if (image(i,j,1) > 0.5 && image(i,j,2) < 0.1)
+        matchedPoints2(num,1) = i;
+        matchedPoints2(num,2) = j;
     
-    posx = max( min(posx, a), 1);
-    posy = max( min(posy, b), 1);
+        posx = round( i + vy(i,j));
+        posy = round( j + vx(i,j));
     
-    matchedPoints2(num,1) = posx;
-    matchedPoints2(num,2) = posy;
+        posx = max( min(posx, a), 1);
+        posy = max( min(posy, b), 1);
+    
+        matchedPoints1(num,1) = posx;
+        matchedPoints1(num,2) = posy;
+        
+        num = num + 1;
+    end
     
 end
 
@@ -54,41 +75,18 @@ fx = f/dx;
 fy = f/dy;
 
 % K = [fx, 0, cx; 0, fy, cy; 0, 0, 1];
-cameraParams = [fx, 0, 0; 0, fy, 0; cx, cy, 1];
+K = [fx, 0, 0; 0, fy, 0; cx, cy, 1];
+cameraParams = cameraParameters('IntrinsicMatrix', K);
 
 F = estimateFundamentalMatrix(matchedPoints1, matchedPoints2);
 
-E = cameraParams' * F * cameraParams;
+%the cameraPose function is adjusted a little bit, remember to copy it as
+%another function and do the change there to keep it clean after this
+%project.
+[Rot, Pos] = myCameraMatrix(F, cameraParams, matchedPoints1, matchedPoints2);
 
-[U,S,V] = svd(E);
+Rot = Rot';
 
-G = zeros(3, 3);
-G(1,2) = 1;
-G(2,1) = -1;
-G(3,3) = 1;
-
-R = U * G * V';
-T = U(:,3);
-
-R1 = U * G' * V';
-T1 = - U(:,3);
-
-x = matchedPoints1(1,1);
-y = matchedPoints1(1,2);
-
-if Infront(R, T, x, y, f) == 1
-    Rot = R;
-    Pos = T;
-elseif Infront(R, T1, x, y, f) == 1
-    Rot = R;
-    Pos = T1;
-elseif Infront(R1, T, x, y, f) == 1
-    Rot = R1;
-    Pos = T;
-elseif Infront(R1, T1, x, y, f) == 1
-    Rot = R1;
-    Pos = T1;
-else
-    fprintf( 'Wrong Parameters\n');
+Pos = -Pos * Rot;
 end
 
