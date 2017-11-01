@@ -70,28 +70,29 @@ toc
 % % 
 % % imwrite(imflow,fullfile('output',[example '_flow.jpg']),'quality',100);
 % 
-[a,b] = size(vx1);
-estimatedI1 = zeros(a,b,3);
-
-for i = 1:a
-    for j = 1:b
-        posx = round( i + vy1(i,j));
-        posy = round( j + vx1(i,j));
-        
-        posx = max( min(posx, a), 1);
-        posy = max( min(posy, b), 1);
-        
-        estimatedI1(i,j,:) = im2(posx, posy,:);
-        
-    end
-end
-
-% figure;
-% imshow(estimatedI1);
+% [a,b] = size(vx1);
+% estimatedI1 = zeros(a,b,3);
+% 
+% for i = 1:a
+%     for j = 1:b
+%         posx = round( i + vy1(i,j));
+%         posy = round( j + vx1(i,j));
+%         
+%         posx = max( min(posx, a), 1);
+%         posy = max( min(posy, b), 1);
+%         
+%         estimatedI1(i,j,:) = im2(posx, posy,:);
+%         
+%     end
+% end
+% 
+% % figure;
+% % imshow(estimatedI1);
 % 
 % volume(:,:,:,2) = estimatedI1;
-% frame2gif(volume,fullfile('output',[example '_diff1E1.gif']));
-
+% frame2gif(volume,fullfile('output',sprintf( '%sdifference%02dE%02d.gif', example, index-1, index)));
+% 
+% imwrite(estimatedI1,fullfile('output',sprintf( 'estimatedI%02d.jpg', example, index-1)));
 
 % count = 0;
 % for i=1:a

@@ -6,8 +6,8 @@ load stereoPointPairs
 %% get the correspondence from the optical flow algorithm
 %  get matched Points 1 and matched Points 2
 [a,b] = size(vx);
-matchedPoints1 = zeros(16,2);
-matchedPoints2 = zeros(16,2);
+matchedPoints1 = zeros(64,2);
+matchedPoints2 = zeros(64,2);
 
 i = round(a/2);
 j = round(b/2);
@@ -27,7 +27,7 @@ up = border;
 down = a - border;
 
 num = 1;
-while(num < 17)
+while(num < 65)
     
     i = round(unifrnd(up,down));
     j = round(unifrnd(left,right));
@@ -55,11 +55,14 @@ end
 
 %% get the essentialMatrix from the correspondence
 %  first, use the parameters to determine K: intrinsic camera parameters 
-nw = 640;
-nh = 480;
+nw = 1920;
+nh = 1080;
+% nw = 640;
+% nh = 480;
 
 w = 36;
-ratio = 1.333;
+ratio = 1.6;
+% ratio = 1.333;
 h = w/ratio;
 
 f = 52.5;
@@ -78,15 +81,17 @@ fy = f/dy;
 K = [fx, 0, 0; 0, fy, 0; cx, cy, 1];
 cameraParams = cameraParameters('IntrinsicMatrix', K);
 
-F = estimateFundamentalMatrix(matchedPoints1, matchedPoints2);
+[F, inliersIndex, status] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2, 'Method', 'LMeds', 'NumTrials', 500);
+
+% [F, inliersIndex, status] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2, 'Method', 'Norm8Point');
 
 %the cameraPose function is adjusted a little bit, remember to copy it as
 %another function and do the change there to keep it clean after this
 %project.
 [Rot, Pos] = myCameraMatrix(F, cameraParams, matchedPoints1, matchedPoints2);
 
-Rot = Rot';
-
-Pos = -Pos * Rot;
+% Rot = Rot';
+% 
+% Pos = -Pos * Rot;
 end
 
